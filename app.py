@@ -387,9 +387,14 @@ if extraction_status in ["RUNNING", "MERGING", "COMPLETED"] or has_active_sessio
     # Raw scraper output — this is where a launch failure (wrong
     # interpreter, missing Chromium, proxy error, crash traceback) actually
     # shows up, since the scraper's own stdout/stderr now go to these files.
-    with st.expander("🛠️ Scraper debug logs"):
-        _log_files = sorted(DATA_DIR.glob("scraper_session*_stdout.log")) + \
-                     sorted(DATA_DIR.glob("scraper_session*_debug.log"))
+    with st.expander("🛠️ Scraper debug logs", expanded=True):
+        _log_files = (
+            sorted(DATA_DIR.glob("scraper_session*_stdout.log")) +   # our wrapper: launch/exit lines
+            sorted(DATA_DIR.glob("scraper_session*_debug.log")) +    # our wrapper: tracebacks
+            sorted(DATA_DIR.glob("scrape_session*_status.log")) +    # the scraper's OWN progress log (per session)
+            [DATA_DIR / "scrape_status.log"]                          # the scraper's OWN combined log (all sessions)
+        )
+        _log_files = [f for f in _log_files if f.exists()]
         if not _log_files:
             st.caption("No scraper logs yet.")
         for _lf in _log_files:
